@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/velocidex/go-vmfs/parser"
 	ntfs_parser "www.velocidex.com/golang/go-ntfs/parser"
 )
 
@@ -32,14 +33,14 @@ func doRead() {
 		fmt.Printf("Error reading from file: %s\n", err)
 		return
 	}
-	fmt.Println("Read data:")
-	for i, b := range buf {
-		if i%16 == 0 {
-			fmt.Printf("\n%08x: ", i)
-		}
-		fmt.Printf("%02x ", b)
+
+	descriptor, err := parser.NewFS3FileDescriptor(buf)
+	if err != nil {
+		fmt.Printf("Error parsing descriptor: %s\n", err)
+		return
 	}
 
+	fmt.Printf("Descriptor: %s\n", descriptor.DebugString())
 }
 
 func init() {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io"
 	"os"
 
 	kingpin "github.com/alecthomas/kingpin/v2"
@@ -29,8 +28,4 @@ func main() {
 			break
 		}
 	}
-}
-
-func getReader(reader io.ReaderAt) io.ReaderAt {
-	return reader
 }
