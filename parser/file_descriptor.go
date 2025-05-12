@@ -1,5 +1,12 @@
 package parser
 
+import (
+	"bytes"
+	"encoding/binary"
+	"fmt"
+	"io"
+)
+
 const (
 	FS3_FileDescriptor_Size = 0x16c
 )
@@ -46,4 +53,21 @@ type FS3_FileDescriptor struct {
 	NumLFB              uint32
 	Unk13               [216]byte
 	LastFreeSFBC        uint32
+}
+
+func NewFS3FileDescriptor(r io.ReaderAt, addr uint64, blockSize uint64) (*FS3_FileDescriptor, error) {
+	buf := make([]byte, blockSize)
+	offset := int64(addr) * int64(blockSize)
+	_, err := r.ReadAt(buf, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read descriptor at %x: %v", offset, err)
+	}
+
+	var fd FS3_FileDescriptor
+	err = binary.Read(bytes.NewReader(buf), binary.LittleEndian, &fd)
+	if err != nil {
+		return nil, fmt.Errorf("binary.Read failed: %v", err)
+	}
+
+	return &fd, nil
 }
