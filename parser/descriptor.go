@@ -9,6 +9,8 @@ import (
 const (
 	VMFS_FS3_MAGIC  = 0x2fabf15e
 	VMFSL_FS3_MAGIC = 0x2fabf15f
+
+	FS3_Descriptor_Size = 0x162
 )
 
 type FDS_VolInfo struct {
@@ -19,7 +21,7 @@ type FS3_Checksum struct {
 	ChecksumGen uint64
 }
 
-type FS3FileDescriptor struct {
+type FS3Descriptor struct {
 	Magic                  uint32
 	MajorVersion           uint32
 	MinorVersion           uint8
@@ -62,25 +64,25 @@ type FS3FileDescriptor struct {
 	LocalMountOwnerMacAddr [6]byte
 }
 
-func (self *FS3FileDescriptor) IsVMFS5() bool {
+func (self *FS3Descriptor) IsVMFS5() bool {
 	return self.MajorVersion <= 0x17
 }
 
-func (self *FS3FileDescriptor) IsVMFS6() bool {
+func (self *FS3Descriptor) IsVMFS6() bool {
 	return self.MajorVersion >= 0x18
 }
 
-func (self *FS3FileDescriptor) DebugString() string {
-	return fmt.Sprintf("FS3FileDescriptor{\nMagic: %x,\n\tMajorVersion: %d,\n\tMinorVersion: %d,\n\tUUID: %x,\n\tConfig: %d,\n\tFSLabel: %s,\n\tDiskBlockSize: %d,\n\tFileBlockSize: %d,\n\tCreationTime: %d,\n\tSnapID: %d,\n\tVolInfo: %x,\n\tFDCClusterGroupOffset: %d,\n\tFDCClustersPerGroup: %d,\n\tSubBlockSize: %d,\n\tMaxJournalSlotsPerTxn: %d,\n\tPB2VolAddr: %x,\n\tPB2FDAddr: %d,\n\tHostUUID: %x,\n\tGBLGeneration: %d,\n\tSDDVolAddr: %x,\n\tSDDFDAddr: %d,\n\tChecksumType: %d,\n\tUnmapPriority: %d,\n\tPad1: %x,\n\tChecksumGen: %d,\n\tChecksum: {Value:%x, ChecksumGen:%x},\n\tPhysDiskBlockSize: %d,\n\tMDAlignment: %d,\n\tSFBToLFBShift: %d,\n\tReserved16_1: %d,\n\tReserved16_2: %d,\n\tPtrBlockShift: %d,\n\tSFBAddrBits: %d,\n\tReserved16_3: %d,\n}\n",
+func (self *FS3Descriptor) DebugString() string {
+	return fmt.Sprintf("FS3Descriptor{\nMagic: %x,\n\tMajorVersion: %d,\n\tMinorVersion: %d,\n\tUUID: %x,\n\tConfig: %d,\n\tFSLabel: %s,\n\tDiskBlockSize: %d,\n\tFileBlockSize: %d,\n\tCreationTime: %d,\n\tSnapID: %d,\n\tVolInfo: %x,\n\tFDCClusterGroupOffset: %d,\n\tFDCClustersPerGroup: %d,\n\tSubBlockSize: %d,\n\tMaxJournalSlotsPerTxn: %d,\n\tPB2VolAddr: %x,\n\tPB2FDAddr: %d,\n\tHostUUID: %x,\n\tGBLGeneration: %d,\n\tSDDVolAddr: %x,\n\tSDDFDAddr: %d,\n\tChecksumType: %d,\n\tUnmapPriority: %d,\n\tPad1: %x,\n\tChecksumGen: %d,\n\tChecksum: {Value:%x, ChecksumGen:%x},\n\tPhysDiskBlockSize: %d,\n\tMDAlignment: %d,\n\tSFBToLFBShift: %d,\n\tReserved16_1: %d,\n\tReserved16_2: %d,\n\tPtrBlockShift: %d,\n\tSFBAddrBits: %d,\n\tReserved16_3: %d,\n}\n",
 		self.Magic, self.MajorVersion, self.MinorVersion, self.UUID, self.Config, self.FSLabel[:], self.DiskBlockSize, self.FileBlockSize, self.CreationTime, self.SnapID, self.VolInfo.ID[:], self.FDCClusterGroupOffset, self.FDCClustersPerGroup, self.SubBlockSize, self.MaxJournalSlotsPerTxn, self.PB2VolAddr, self.PB2FDAddr, self.HostUUID[:], self.GBLGeneration, self.SDDVolAddr, self.SDDFDAddr, self.ChecksumType, self.UnmapPriority, self.Pad1[:], self.ChecksumGen, self.Checksum.Value, self.Checksum.ChecksumGen, self.PhysDiskBlockSize, self.MDAlignment, self.SFBToLFBShift, self.Reserved16_1, self.Reserved16_2, self.PtrBlockShift, self.SFBAddrBits, self.Reserved16_3)
 }
 
-func NewFS3FileDescriptor(buf []byte) (*FS3FileDescriptor, error) {
-	if len(buf) < 512 {
+func NewFS3Descriptor(buf []byte) (*FS3Descriptor, error) {
+	if len(buf) < FS3_Descriptor_Size {
 		return nil, fmt.Errorf("buffer too small")
 	}
 
-	fd := &FS3FileDescriptor{}
+	fd := &FS3Descriptor{}
 	err := binary.Read(bytes.NewReader(buf), binary.LittleEndian, fd)
 	if err != nil {
 		return nil, err

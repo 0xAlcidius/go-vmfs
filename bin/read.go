@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/velocidex/go-vmfs/parser"
 	ntfs_parser "www.velocidex.com/golang/go-ntfs/parser"
 )
@@ -21,24 +22,14 @@ func doRead() {
 		Offset: PartitionOffset,
 		Reader: *info_command_file_arg,
 	}, 1024, 10000)
+	kingpin.FatalIfError(err, "Error opening file: %s", err)
 
-	if err != nil {
-		fmt.Printf("Error creating reader: %s\n", err)
-		return
-	}
-
-	buf := make([]byte, 512)
+	buf := make([]byte, parser.FS3_Descriptor_Size)
 	_, err = reader.ReadAt(buf, 0)
-	if err != nil {
-		fmt.Printf("Error reading from file: %s\n", err)
-		return
-	}
+	kingpin.FatalIfError(err, "Error reading file: %s", err)
 
-	descriptor, err := parser.NewFS3FileDescriptor(buf)
-	if err != nil {
-		fmt.Printf("Error parsing descriptor: %s\n", err)
-		return
-	}
+	descriptor, err := parser.NewFS3Descriptor(buf)
+	kingpin.FatalIfError(err, "Error parsing descriptor: %s", err)
 
 	fmt.Printf("Descriptor: %s\n", descriptor.DebugString())
 }
